@@ -3,48 +3,48 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
-    <loc>https://games.example.com/</loc>
+    <loc>https://static-games-53y.pages.dev/</loc>
     <lastmod>2026-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>https://games.example.com/assets/og-cover.jpg</image:loc>
+      <image:loc>https://static-games-53y.pages.dev/assets/og-cover.jpg</image:loc>
       <image:title>Static Games Collection</image:title>
       <image:caption>Free HTML5 browser games - no downloads required</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://games.example.com/puzzle/2048.html</loc>
+    <loc>https://static-games-53y.pages.dev/puzzle/2048.html</loc>
     <lastmod>2026-09-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://games.example.com/action/breakout.html</loc>
+    <loc>https://static-games-53y.pages.dev/action/breakout.html</loc>
     <lastmod>2026-09-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://games.example.com/casual/snake.html</loc>
+    <loc>https://static-games-53y.pages.dev/casual/snake.html</loc>
     <lastmod>2026-09-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://games.example.com/shooter/space-invaders.html</loc>
+    <loc>https://static-games-53y.pages.dev/shooter/space-invaders.html</loc>
     <lastmod>2026-09-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://games.example.com/racing/index.html</loc>
+    <loc>https://static-games-53y.pages.dev/racing/index.html</loc>
     <lastmod>2026-09-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://games.example.com/rhythm/index.html</loc>
+    <loc>https://static-games-53y.pages.dev/rhythm/index.html</loc>
     <lastmod>2026-09-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
