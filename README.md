@@ -4,7 +4,8 @@ Free HTML5 browser games collection with Cloudflare R2 integration.
 
 ## Live Deployments
 
-- **Cloudflare Pages**: https://static-games-53y.pages.dev/
+- **GitHub Pages**: https://vip-4.github.io/static-games/
+- **Cloudflare Pages**: https://static-games-53y.pages.dev/ (pending build)
 - **GitHub**: https://github.com/vip-4/static-games
 
 ## Games
