@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Play Beat Tap - free HTML5 rhythm game. Hit notes on beat with QWER keys.">
+<meta property="og:title" content="Beat Tap - Free HTML5 Rhythm Game">
+<meta property="og:description" content="Play free HTML5 rhythm game instantly in your browser.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<title>Beat Tap - Rhythm Game</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Arial', sans-serif; background: #0f0f23; display: flex; flex-direction: column; align-items: center; padding: 20px; color: #fff; min-height: 100vh; }
+h1 { color: #a29bfe; margin-bottom: 10px; text-shadow: 0 0 10px #a29bfe; }
+#game-container { position: relative; margin: 10px 0; }
+canvas { background: #1a1a3e; border: 2px solid #a29bfe; border-radius: 5px; display: block; }
+.controls { display: flex; gap: 10px; margin-bottom: 10px; }
+button { padding: 10px 20px; font-size: 16px; background: #a29bfe; color: white; border: none; border-radius: 5px; cursor: pointer; }
+button:hover { background: #8c7ae6; }
+.stats { display: flex; gap: 30px; margin-bottom: 10px; font-size: 18px; }
+.stats span { background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 5px; }
+#message { font-size: 24px; color: #a29bfe; margin-top: 10px; text-align: center; min-height: 30px; }
+</style>
+</head>
+<body>
+<h1>🎵 Beat Tap</h1>
+<div class="stats">
+  <span>Score: <b id="score">0</b></span>
+  <span>Combo: <b id="combo">0</b>x</span>
+  <span>Accuracy: <b id="accuracy">100%</b></span>
+</div>
+<div class="controls">
+  <button id="startBtn">Start</button>
+  <button id="pauseBtn">Pause</button>
+  <button id="resetBtn">Reset</button>
+</div>
+<div id="game-container">
+  <canvas id="game" width="500" height="600"></canvas>
+</div>
+<div id="message"></div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const comboEl = document.getElementById('combo');
+const accuracyEl = document.getElementById('accuracy');
+const messageEl = document.getElementById('message');
+const startBtn = document.getElementById('startBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+let notes = [];
+let score = 0;
+let combo = 0;
+let hits = 0;
+let misses = 0;
+let gameRunning = false;
+let gameLoop;
+let noteSpeed = 4;
+let hitZone = 550;
+let lastTime = 0;
+
+function initGame() {
+  notes = [];
+  score = 0;
+  combo = 0;
+  hits = 0;
+  misses = 0;
+  updateDisplay();
+  messageEl.textContent = '';
+}
+
+function updateDisplay() {
+  scoreEl.textContent = score;
+  comboEl.textContent = combo;
+  const total = hits + misses;
+  accuracyEl.textContent = total > 0 ? Math.round(hits / total * 100) + '%' : '100%';
+}
+
+function spawnNote() {
+  const lane = Math.floor(Math.random() * 4);
+  const colors = ['#ff6b6b', '#00cec9', '#a29bfe', '#ffeaa7'];
+  notes.push({
+    lane: lane,
+    y: 0,
+    width: 100,
+    height: 20,
+    color: colors[lane],
+    hit: false
+  });
+}
+
+function updateGame(dt) {
+  if (!gameRunning) return;
+  
+  // Spawn notes
+  if (Math.random() < 0.03) spawnNote();
+  
+  // Update notes
+  for (let i = notes.length - 1; i >= 0; i--) {
+    notes[i].y += noteSpeed;
+    
+    // Missed note
+    if (notes[i].y > 600) {
+      notes.splice(i, 1);
+      misses++;
+      combo = 0;
+      updateDisplay();
+    }
+  }
+}
+
+function drawGame() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw lanes
+  ctx.strokeStyle = '#2d3047';
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * 125, 0);
+    ctx.lineTo(i * 125, 600);
+    ctx.stroke();
+  }
+  
+  // Draw hit zone
+  ctx.fillStyle = 'rgba(162, 155, 255, 0.2)';
+  ctx.fillRect(0, hitZone, canvas.width, 40);
+  ctx.strokeStyle = '#a29bfe';
+  ctx.strokeRect(0, hitZone, canvas.width, 40);
+  
+  // Draw labels
+  const keys = ['Q', 'W', 'E', 'R'];
+  ctx.fillStyle = '#fff';
+  ctx.font = '16px Arial';
+  ctx.textAlign = 'center';
+  for (let i = 0; i < 4; i++) {
+    ctx.fillText(keys[i], i * 125 + 62, hitZone + 25);
+  }
+  
+  // Draw notes
+  notes.forEach(note => {
+    const x = note.lane * 125 + 12;
+    ctx.fillStyle = note.color;
+    ctx.fillRect(x, note.y, note.width - 24, note.height);
+  });
+}
+
+function checkHit(lane) {
+  for (let i = 0; i < notes.length; i++) {
+    if (notes[i].lane === lane && !notes[i].hit) {
+      const distance = Math.abs(notes[i].y - hitZone);
+      if (distance < 40) {
+        notes[i].hit = true;
+        hits++;
+        combo++;
+        score += 100 * combo;
+        notes.splice(i, 1);
+        updateDisplay();
+        return true;
+      }
+    }
+  }
+  misses++;
+  combo = 0;
+  updateDisplay();
+  return false;
+}
+
+function startGame() {
+  if (gameRunning) return;
+  gameRunning = true;
+  messageEl.textContent = '';
+  gameLoop = setInterval(() => {
+    updateGame(16);
+    drawGame();
+  }, 16);
+}
+
+function pauseGame() {
+  gameRunning = !gameRunning;
+  pauseBtn.textContent = gameRunning ? 'Pause' : 'Resume';
+}
+
+function resetGame() {
+  gameRunning = false;
+  clearInterval(gameLoop);
+  initGame();
+  drawGame();
+  pauseBtn.textContent = 'Pause';
+}
+
+// Input handling
+document.addEventListener('keydown', (e) => {
+  if (!gameRunning) return;
+  const keyMap = { 'q': 0, 'w': 1, 'e': 2, 'r': 3 };
+  const lane = keyMap[e.key.toLowerCase()];
+  if (lane !== undefined) {
+    checkHit(lane);
+  }
+});
+
+startBtn.addEventListener('click', startGame);
+pauseBtn.addEventListener('click', pauseGame);
+resetBtn.addEventListener('click', resetGame);
+
+// Initialize
+initGame();
+drawGame();
+</script>
+</head>
+</html>

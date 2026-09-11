@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breakout - Action Game</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: Arial, sans-serif; color: #fff; }
+canvas { border: 2px solid #fff; cursor: none; }
+#score { margin: 10px; font-size: 20px; }
+button { margin: 10px; padding: 8px 16px; background: #ff6b6b; color: white; border: none; border-radius: 4px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div id="score">Score: 0</div>
+<canvas id="game" width="480" height="600"></canvas>
+<div><button id="restart">Restart</button></div>
+
+<script>
+// Breakout Game - Classic arcade brick breaker
+// Technical: Canvas 2D rendering, mouse/canvas collision, ball physics, brick grid system
+// Difficulty: Medium - requires precise paddle control and angle calculation
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+let paddle = { x: 200, y: 580, w: 100, h: 15, speed: 8 };
+let ball = { x: 240, y: 560, r: 8, dx: 5, dy: -5, active: false };
+let bricks = [];
+let score = 0;
+let lives = 3;
+let gameOver = false;
+
+function initBricks() {
+  bricks = [];
+  const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#a3cb38'];
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 8; c++) {
+      bricks.push({ x: c*60+10, y: r*25+50, w: 50, h: 20, color: colors[r], hit: false });
+    }
+  }
+}
+
+function drawPaddle() {
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+}
+
+function drawBall() {
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.closePath();
+}
+
+function drawBricks() {
+  bricks.forEach(b => {
+    if (!b.hit) {
+      ctx.fillStyle = b.color;
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+    }
+  });
+}
+
+function update() {
+  if (!ball.active) {
+    ball.x = paddle.x + paddle.w/2;
+    ball.y = paddle.y - ball.r;
+    return;
+  }
+
+  ball.x += ball.dx;
+  ball.y += ball.dy;
+
+  // Wall collision
+  if (ball.x < ball.r || ball.x > canvas.width - ball.r) ball.dx = -ball.dx;
+  if (ball.y < ball.r) ball.dy = -ball.dy;
+
+  // Paddle collision
+  if (ball.y + ball.r > paddle.y && ball.x > paddle.x && ball.x < paddle.x + paddle.w) {
+    const hitPos = (ball.x - (paddle.x + paddle.w/2)) / (paddle.w/2);
+    ball.dy = -Math.abs(ball.dy);
+    ball.dx = hitPos * 7;
+  }
+
+  // Bottom - lose life
+  if (ball.y > canvas.height) {
+    lives--;
+    if (lives <= 0) {
+      gameOver = true;
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = '#fff';
+      ctx.font = '40px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2);
+      ctx.font = '20px Arial';
+      ctx.fillText('Score: ' + score, canvas.width/2, canvas.height/2+40);
+    } else {
+      ball.active = false;
+    }
+  }
+
+  // Brick collision
+  bricks.forEach(b => {
+    if (!b.hit && ball.x > b.x && ball.x < b.x+b.w && ball.y > b.y && ball.y < b.y+b.h) {
+      b.hit = true;
+      ball.dy = -ball.dy;
+      score += 100;
+      scoreEl.textContent = 'Score: ' + score;
+    }
+  });
+
+  // Win check
+  if (bricks.every(b => b.hit)) {
+    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#fff';
+    ctx.font = '40px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('YOU WIN!', canvas.width/2, canvas.height/2);
+    ctx.font = '20px Arial';
+    ctx.fillText('Score: ' + score, canvas.width/2, canvas.height/2+40);
+    gameOver = true;
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBricks();
+  drawPaddle();
+  drawBall();
+}
+
+function gameLoop() {
+  update();
+  draw();
+  if (!gameOver) requestAnimationFrame(gameLoop);
+}
+
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  paddle.x = e.clientX - rect.left - paddle.w/2;
+  if (paddle.x < 0) paddle.x = 0;
+  if (paddle.x > canvas.width - paddle.w) paddle.x = canvas.width - paddle.w;
+});
+
+canvas.addEventListener('click', () => {
+  if (!ball.active) ball.active = true;
+});
+
+document.getElementById('restart').onclick = () => {
+  score = 0; lives = 3; gameOver = false;
+  ball.active = false;
+  scoreEl.textContent = 'Score: 0';
+  initBricks();
+  gameLoop();
+};
+
+initBricks();
+gameLoop();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+name = "static-games"
+account_id = "8eb2b9535949b021a8898e81575fba9a"
+workers_route = "games.example.com/*"
+
+[build]
+command = "echo 'Building static games...'"
+public_dir = "."
+
+[env.production]
+name = "static-games-production"
+
+  [env.production.vars]
+  SITE_URL = "https://games.example.com"
+
+  [[env.production.r2_bindings]]
+  name = "ASSETS"
+  bucket_name = "static-games-assets"

@@ -1,0 +1,26 @@
+# Cloudflare R2 deployment configuration
+# Credentials stored securely - use environment variables
+
+[cloudflare]
+account_id = "${CLOUDFLARE_ACCOUNT_ID}"
+r2_endpoint = "${CLOUDFLARE_R2_ENDPOINT}"
+r2_bucket = "static-games-assets"
+
+[cdn]
+cache_ttl_static = "1 year"
+cache_ttl_html = "1 hour"
+minify = true
+brotli = true
+gzip = true
+mirage = true
+polish = "lossy"
+
+[geo]
+default_region = "us"
+regions = ["us", "eu", "asia", "oc"]
+
+[seo]
+site_name = "Static Games Collection"
+site_description = "Free HTML5 browser games - no downloads, no registration, just play"
+language = "en"
+hreflang = ["en", "es", "fr", "de", "ja", "zh"]

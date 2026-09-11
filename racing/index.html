@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Play Retro Racer - free HTML5 top-down racing game. Arrow keys to steer, avoid obstacles, complete laps.">
+<meta property="og:title" content="Retro Racer - Free HTML5 Racing Game">
+<meta property="og:description" content="Play free HTML5 racing game instantly in your browser.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<title>Retro Racer - Racing Game</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Arial', sans-serif; background: #0f0f23; display: flex; flex-direction: column; align-items: center; padding: 20px; color: #fff; min-height: 100vh; }
+h1 { color: #ff6b6b; margin-bottom: 10px; text-shadow: 0 0 10px #ff6b6b; }
+#game-container { position: relative; margin: 10px 0; }
+canvas { background: #1a1a3e; border: 2px solid #ff6b6b; border-radius: 5px; display: block; }
+.controls { display: flex; gap: 10px; margin-bottom: 10px; }
+button { padding: 10px 20px; font-size: 16px; background: #ff6b6b; color: white; border: none; border-radius: 5px; cursor: pointer; }
+button:hover { background: #ff5252; }
+.stats { display: flex; gap: 30px; margin-bottom: 10px; font-size: 18px; }
+.stats span { background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 5px; }
+#message { font-size: 24px; color: #ff6b6b; margin-top: 10px; text-align: center; min-height: 30px; }
+</style>
+</head>
+<body>
+<h1>🚗 Retro Racer</h1>
+<div class="stats">
+  <span>Score: <b id="score">0</b></span>
+  <span>Lap: <b id="lap">1</b>/3</span>
+  <span>Time: <b id="timer">60</b>s</span>
+</div>
+<div class="controls">
+  <button id="startBtn">Start</button>
+  <button id="pauseBtn">Pause</button>
+  <button id="resetBtn">Reset</button>
+</div>
+<div id="game-container">
+  <canvas id="game" width="500" height="600"></canvas>
+</div>
+<div id="message"></div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const lapEl = document.getElementById('lap');
+const timerEl = document.getElementById('timer');
+const messageEl = document.getElementById('message');
+const startBtn = document.getElementById('startBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+let car = { x: 250, y: 500, width: 20, height: 35, speed: 4, color: '#ff6b6b' };
+let obstacles = [];
+let score = 0;
+let lap = 1;
+let time = 60;
+let gameRunning = false;
+let gameLoop;
+let lastTime = 0;
+
+function initGame() {
+  car = { x: 250, y: 500, width: 20, height: 35, speed: 4, color: '#ff6b6b' };
+  obstacles = [];
+  score = 0;
+  lap = 1;
+  time = 60;
+  updateDisplay();
+  messageEl.textContent = '';
+}
+
+function updateDisplay() {
+  scoreEl.textContent = score;
+  lapEl.textContent = lap;
+  timerEl.textContent = time;
+}
+
+function spawnObstacle() {
+  const laneWidth = 100;
+  const laneCount = 5;
+  const lane = Math.floor(Math.random() * laneCount);
+  const x = 50 + lane * laneWidth + (laneWidth - 20) / 2;
+  obstacles.push({ x: x, y: -30, width: 20, height: 30, speed: 3 + Math.random() * 2 });
+}
+
+function updateGame(dt) {
+  if (!gameRunning) return;
+  
+  time -= dt / 1000;
+  if (time <= 0) {
+    time = 0;
+    gameOver();
+    return;
+  }
+  
+  // Spawn obstacles
+  if (Math.random() < 0.02) spawnObstacle();
+  
+  // Update obstacles
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    obstacles[i].y += obstacles[i].speed;
+    if (obstacles[i].y > 600) {
+      obstacles.splice(i, 1);
+      score += 10;
+      updateDisplay();
+    }
+    
+    // Collision check
+    if (obstacles[i].x < car.x + car.width &&
+        obstacles[i].x + obstacles[i].width > car.x &&
+        obstacles[i].y < car.y + car.height &&
+        obstacles[i].y + obstacles[i].height > car.y) {
+      gameOver();
+      return;
+    }
+  }
+  
+  // Lap completion
+  if (score >= lap * 100) {
+    lap++;
+    time += 10;
+    updateDisplay();
+  }
+}
+
+function drawGame() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw road
+  ctx.fillStyle = '#1a1a3e';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw lane markers
+  ctx.strokeStyle = '#ff6b6b';
+  ctx.setLineDash([10, 10]);
+  ctx.lineWidth = 2;
+  for (let i = 1; i < 5; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * 100, 0);
+    ctx.lineTo(i * 100, 600);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  
+  // Draw car
+  ctx.fillStyle = car.color;
+  ctx.fillRect(car.x, car.y, car.width, car.height);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(car.x + 3, car.y + 3, car.width - 6, 5);
+  
+  // Draw obstacles
+  ctx.fillStyle = '#00cec9';
+  obstacles.forEach(obs => {
+    ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+  });
+}
+
+function gameOver() {
+  gameRunning = false;
+  messageEl.textContent = `Game Over! Score: ${score}`;
+  clearInterval(gameLoop);
+}
+
+function startGame() {
+  if (gameRunning) return;
+  gameRunning = true;
+  messageEl.textContent = '';
+  gameLoop = setInterval(() => {
+    updateGame(16);
+    drawGame();
+  }, 16);
+}
+
+function pauseGame() {
+  gameRunning = !gameRunning;
+  pauseBtn.textContent = gameRunning ? 'Pause' : 'Resume';
+}
+
+function resetGame() {
+  gameRunning = false;
+  clearInterval(gameLoop);
+  initGame();
+  drawGame();
+  pauseBtn.textContent = 'Pause';
+}
+
+// Input handling
+document.addEventListener('keydown', (e) => {
+  if (!gameRunning) return;
+  const step = 20;
+  switch(e.key) {
+    case 'ArrowLeft':
+    case 'a':
+    case 'A':
+      if (car.x > 50) car.x -= step;
+      break;
+    case 'ArrowRight':
+    case 'd':
+    case 'D':
+      if (car.x < 430) car.x += step;
+      break;
+  }
+});
+
+startBtn.addEventListener('click', startGame);
+pauseBtn.addEventListener('click', pauseGame);
+resetBtn.addEventListener('click', resetGame);
+
+// Initialize
+initGame();
+drawGame();
+</script>
+</head>
+</html>
